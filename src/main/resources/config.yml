@@ -1,0 +1,5 @@
+# The name of the world and the coordinates of where to teleport the player
+world-name: world
+spawn-x: 0
+spawn-y: 1
+spawn-z: 0
