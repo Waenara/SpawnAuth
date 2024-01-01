@@ -1,5 +1,6 @@
 package f3f5.spawnauth;
 
+import fr.xephi.authme.api.v3.AuthMeApi;
 import fr.xephi.authme.events.LoginEvent;
 import fr.xephi.authme.events.LogoutEvent;
 import fr.xephi.authme.events.UnregisterByPlayerEvent;
@@ -22,12 +23,14 @@ import java.util.Random;
 import java.util.UUID;
 
 public class SpawnAuth extends JavaPlugin implements Listener {
+    private AuthMeApi authMeApi;
     private FileConfiguration config;
     private final HashMap<UUID, Location> playerLocations = new HashMap<>();
 
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        authMeApi = AuthMeApi.getInstance();
         config = getConfig();
         config.addDefault("world-name", "world");
         config.addDefault("spawn-x", 0);
@@ -44,12 +47,7 @@ public class SpawnAuth extends JavaPlugin implements Listener {
     }
 
     private void teleportAway(Player player) {
-        Location teleportDestination = new Location(
-                getServer().getWorld(config.getString("world-name")),
-                config.getDouble("spawn-x"),
-                config.getDouble("spawn-y"),
-                config.getDouble("spawn-z")
-        );
+        Location teleportDestination = new Location(getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
 
         PaperLib.getChunkAtAsync(teleportDestination, false).thenAccept(chunk -> player.teleport(teleportDestination));
     }
@@ -66,7 +64,7 @@ public class SpawnAuth extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    private void onPlayerRespawn(PlayerRespawnEvent event){
+    private void onPlayerRespawn(PlayerRespawnEvent event) {
         UUID playerUniqueId = event.getPlayer().getUniqueId();
         playerLocations.remove(playerUniqueId);
     }
@@ -74,7 +72,6 @@ public class SpawnAuth extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        cacheOriginalLocation(player.getUniqueId(), player.getLocation());
         teleportAway(player);
     }
 
@@ -85,33 +82,33 @@ public class SpawnAuth extends JavaPlugin implements Listener {
             player.leaveVehicle();
             teleportBack(player);
         }
+        if (authMeApi.isAuthenticated(player)) {
+            cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        }
     }
+
     private int getRandomCoordinate(int Limit) {
         Random random = new Random();
         return random.nextInt(Limit);
     }
+
     @EventHandler(priority = EventPriority.NORMAL)
     private void onLogin(LoginEvent event) {
         World world = event.getPlayer().getWorld();
         int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius"));
         Player player = event.getPlayer();
         player.setNoDamageTicks(60);
-
-        // Проверка есть ли игрок в списке координат.
-        if (!playerLocations.containsKey(player.getUniqueId())){
-            // Проверка есть ли у игрока кровать.
-            if (player.getBedSpawnLocation() != null){
+        if (!playerLocations.containsKey(player.getUniqueId())) {
+            if (player.getBedSpawnLocation() != null) {
                 player.teleport(player.getBedSpawnLocation());
                 return;
             }
-
-            // Если у игрока нету кровати, то телепортирую на рандомные координаты в пределах game rule "spawnRadius".
             int x = getRandomCoordinate(spawnRadius);
             int z = getRandomCoordinate(spawnRadius);
             int y = world.getHighestBlockYAt(x, z);
 
             player.teleport(new Location(world, x, y, z));
-        }else{
+        } else {
             teleportBack(player);
         }
     }
