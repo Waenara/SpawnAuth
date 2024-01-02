@@ -16,21 +16,25 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
+import static org.bukkit.Bukkit.getServer;
 
 public class Events implements Listener {
     private final Helpers helpers = new Helpers();
     private final HashMap<UUID, Location> playerLocations = helpers.getPlayerLocations();
-    public AuthMeApi authMeApi=AuthMeApi.getInstance();
+    public AuthMeApi authMeApi = AuthMeApi.getInstance();
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
-        UUID playerUniqueId = event.getPlayer().getUniqueId();
-        playerLocations.remove(playerUniqueId);
+        if (!authMeApi.isAuthenticated(event.getPlayer())){
+            UUID playerUniqueId = event.getPlayer().getUniqueId();
+            playerLocations.remove(playerUniqueId);
+            getServer().getScheduler().runTaskLater(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportAway(event.getPlayer()), 2L);
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (helpers.isPlayerInRadius(player,helpers.getSpawnLocation(),10)){
+        if (!helpers.isPlayerInRadius(player,helpers.getSpawnLocation(),10)){
             helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
         }
         helpers.teleportAway(player);

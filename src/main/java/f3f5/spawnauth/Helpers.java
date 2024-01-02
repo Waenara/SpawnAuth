@@ -8,21 +8,20 @@ import java.util.UUID;
 import static f3f5.spawnauth.SpawnAuth.config;
 import static org.bukkit.Bukkit.getServer;
 
-
 public class Helpers {
     private static final HashMap<UUID, Location> playerLocations = new HashMap<>();
     public boolean isPlayerInRadius(Player player, Location center, double radius) {
         return player.getLocation().distanceSquared(center) <= (radius * radius);
     }
     public void cacheOriginalLocation(UUID playerUniqueId, Location loginLocation) {
-        if (!playerLocations.containsKey(playerUniqueId)) {
+        if (!playerLocations.containsKey(playerUniqueId)){
             playerLocations.put(playerUniqueId, loginLocation);
         }
     }
 
     public void teleportAway(Player player) {
         Location teleportDestination = getSpawnLocation();
-        PaperLib.getChunkAtAsync(teleportDestination, false).thenAccept(chunk -> player.teleport(teleportDestination));
+        player.teleport(teleportDestination);
     }
     public Location getSpawnLocation(){
         return new Location(getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
