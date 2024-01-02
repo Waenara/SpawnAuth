@@ -17,8 +17,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
 
-import static org.bukkit.Bukkit.getScheduler;
-import static org.bukkit.Bukkit.getServer;
+import static org.bukkit.Bukkit.*;
 
 public class Events implements Listener {
     private final Helpers helpers = new Helpers();
@@ -37,7 +36,11 @@ public class Events implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!helpers.isPlayerInRadius(player,helpers.getLoginLocation(),10)){
+        if (!(player.getWorld() == getWorld("world_the_end"))) {
+            if (!helpers.isPlayerInRadius(player, helpers.getLoginLocation(), 10)) {
+                helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+            }
+        }else{
             helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
         }
         helpers.teleportAway(player);

@@ -24,7 +24,7 @@ public class Helpers {
         }
     }
     public void teleportPlayer(Player player){
-        if (authMeApi.isAuthenticated(player) || player.getLocation().getY() >= getLoginLocation().getY()) return;
+        if (authMeApi.isAuthenticated(player)) return;
         player.teleport(getLoginLocation());
     }
     public Location getSpawnLocation(World world) {
@@ -50,10 +50,8 @@ public class Helpers {
         if (!playerLocations.containsKey(playerUniqueId)) return;
         Location teleportDestination = playerLocations.get(playerUniqueId);
 
-        PaperLib.getChunkAtAsync(teleportDestination, false).thenAccept(chunk -> PaperLib.teleportAsync(player, teleportDestination).thenAccept(teleportHasHappened -> {
-            if (!teleportHasHappened) player.teleport(teleportDestination);
-            playerLocations.remove(playerUniqueId);
-        }));
+        player.teleport(teleportDestination);
+        playerLocations.remove(playerUniqueId);
     }
     public HashMap<UUID, Location> getPlayerLocations(){
         return playerLocations;
