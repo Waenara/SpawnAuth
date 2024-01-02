@@ -2,6 +2,7 @@ package f3f5.spawnauth;
 
 import fr.xephi.authme.api.v3.AuthMeApi;
 import io.papermc.lib.PaperLib;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
 import static f3f5.spawnauth.SpawnAuth.config;
-import static org.bukkit.Bukkit.*;
+
 
 public class Helpers {
     public AuthMeApi authMeApi = AuthMeApi.getInstance();
@@ -41,7 +42,7 @@ public class Helpers {
         player.teleport(teleportDestination);
     }
     public Location getLoginLocation(){
-        return new Location(getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
+        return new Location(Bukkit.getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
     }
 
     public void teleportBack(Player player) {
