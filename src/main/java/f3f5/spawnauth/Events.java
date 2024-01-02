@@ -60,7 +60,6 @@ public class Events implements Listener {
         int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius"));
         Player player = event.getPlayer();
         player.setNoDamageTicks(60);
-        System.out.println(playerLocations);
         if (!playerLocations.containsKey(player.getUniqueId())) {
             if (player.getBedSpawnLocation() != null) {
                 player.teleport(player.getBedSpawnLocation());
