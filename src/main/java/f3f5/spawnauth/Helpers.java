@@ -1,14 +1,18 @@
 package f3f5.spawnauth;
 
+import fr.xephi.authme.api.v3.AuthMeApi;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.UUID;
 import static f3f5.spawnauth.SpawnAuth.config;
-import static org.bukkit.Bukkit.getServer;
+import static org.bukkit.Bukkit.*;
 
 public class Helpers {
+    public AuthMeApi authMeApi = AuthMeApi.getInstance();
     private static final HashMap<UUID, Location> playerLocations = new HashMap<>();
     public boolean isPlayerInRadius(Player player, Location center, double radius) {
         return player.getLocation().distanceSquared(center) <= (radius * radius);
@@ -18,12 +22,25 @@ public class Helpers {
             playerLocations.put(playerUniqueId, loginLocation);
         }
     }
+    public void teleportPlayer(Player player){
+        if (authMeApi.isAuthenticated(player) || player.getLocation().getY() >= getLoginLocation().getY()) return;
+        player.teleport(getLoginLocation());
+    }
+    public Location getSpawnLocation(World world) {
+        int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius")) <= 10 ? 200 : Integer.parseInt(world.getGameRuleValue("spawnRadius"));
+
+        int x = new Random().nextInt(spawnRadius*2)-spawnRadius;
+        int z = new Random().nextInt(spawnRadius*2)-spawnRadius;
+        double y = world.getHighestBlockYAt(x, z);
+
+        return new Location(world, x, y, z);
+    }
 
     public void teleportAway(Player player) {
-        Location teleportDestination = getSpawnLocation();
+        Location teleportDestination = getLoginLocation();
         player.teleport(teleportDestination);
     }
-    public Location getSpawnLocation(){
+    public Location getLoginLocation(){
         return new Location(getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
     }
 

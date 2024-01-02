@@ -10,10 +10,6 @@ public class SpawnAuth extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        events = new Events();
-
-        getServer().getPluginManager().registerEvents(events, this);
-
         config = getConfig();
         config.addDefault("world-name", "world");
         config.addDefault("spawn-x", 0);
@@ -22,5 +18,7 @@ public class SpawnAuth extends JavaPlugin implements Listener {
         config.options().copyDefaults(true);
         saveConfig();
 
+        events = new Events();
+        getServer().getPluginManager().registerEvents(events, this);
     }
 }

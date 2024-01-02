@@ -16,12 +16,15 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
+
+import static org.bukkit.Bukkit.getScheduler;
 import static org.bukkit.Bukkit.getServer;
 
 public class Events implements Listener {
     private final Helpers helpers = new Helpers();
     private final HashMap<UUID, Location> playerLocations = helpers.getPlayerLocations();
     public AuthMeApi authMeApi = AuthMeApi.getInstance();
+
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
         if (!authMeApi.isAuthenticated(event.getPlayer())){
@@ -34,10 +37,11 @@ public class Events implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!helpers.isPlayerInRadius(player,helpers.getSpawnLocation(),10)){
+        if (!helpers.isPlayerInRadius(player,helpers.getLoginLocation(),10)){
             helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
         }
         helpers.teleportAway(player);
+        getScheduler().runTaskTimer(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportPlayer(player), 0L, 4L);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -49,15 +53,9 @@ public class Events implements Listener {
         }
     }
 
-    private int getRandomCoordinate(int Limit) {
-        Random random = new Random();
-        return random.nextInt(Limit);
-    }
-
     @EventHandler(priority = EventPriority.NORMAL)
     private void onLogin(LoginEvent event) {
         World world = event.getPlayer().getWorld();
-        int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius"));
         Player player = event.getPlayer();
         player.setNoDamageTicks(60);
         if (!playerLocations.containsKey(player.getUniqueId())) {
@@ -65,11 +63,7 @@ public class Events implements Listener {
                 player.teleport(player.getBedSpawnLocation());
                 return;
             }
-            int x = getRandomCoordinate(spawnRadius);
-            int z = getRandomCoordinate(spawnRadius);
-            int y = world.getHighestBlockYAt(x, z);
-
-            player.teleport(new Location(world, x, y, z));
+            player.teleport(helpers.getSpawnLocation(world));
         } else {
             helpers.teleportBack(player);
         }
