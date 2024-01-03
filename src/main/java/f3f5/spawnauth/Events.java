@@ -43,7 +43,7 @@ public class Events implements Listener {
             helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         }
         helpers.teleportAway(player);
-        PotionEffect invisibilityEffect = new PotionEffect(PotionEffectType.INVISIBILITY, 60, 1);
+        PotionEffect invisibilityEffect = new PotionEffect(PotionEffectType.INVISIBILITY, 1200, 1);
         player.addPotionEffect(invisibilityEffect);
         getScheduler().runTaskTimer(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportPlayer(player), 0L, 4L);
     }

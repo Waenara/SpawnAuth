@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Random;
@@ -55,7 +56,7 @@ public class Helpers {
     }
 
 
-    public void saveData(){
+    public void saveData(File dataFolder){
         Iterator<Map.Entry<String, Location>> iterator = playerLocations.entrySet().iterator();
 
         while (iterator.hasNext()) {
@@ -99,7 +100,7 @@ public class Helpers {
         } catch (SQLException ignored) {}
     }
 
-    public void loadData() {
+    public void loadData(File dataFolder) {
         String url = "jdbc:sqlite:location.db";
         String sqlQuery = "SELECT * FROM location";
         try (Connection connection = DriverManager.getConnection(url);
