@@ -13,6 +13,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
 import java.util.HashMap;
 import static org.bukkit.Bukkit.*;
 
@@ -33,13 +36,15 @@ public class Events implements Listener {
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (!(player.getWorld() == getWorld("world_the_end"))) {
-            if (!helpers.isPlayerInRadius(player, helpers.getLoginLocation(), 10)) {
+            if (!helpers.isPlayerInRadius(player, helpers.getSpawnLocation(player.getWorld()), 2)) {
                 helpers.cacheOriginalLocation(player.getName(), player.getLocation());
             }
         }else{
             helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         }
         helpers.teleportAway(player);
+        PotionEffect invisibilityEffect = new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1);
+        player.addPotionEffect(invisibilityEffect);
         getScheduler().runTaskTimer(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportPlayer(player), 0L, 4L);
     }
 
@@ -66,6 +71,7 @@ public class Events implements Listener {
         } else {
             helpers.teleportBack(player);
         }
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

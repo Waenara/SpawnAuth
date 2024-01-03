@@ -8,8 +8,6 @@ import java.io.File;
 import java.sql.*;
 import java.util.*;
 
-import static f3f5.spawnauth.SpawnAuth.config;
-
 
 public class Helpers {
     public AuthMeApi authMeApi = AuthMeApi.getInstance();
@@ -24,7 +22,7 @@ public class Helpers {
     }
     public void teleportPlayer(Player player){
         if (authMeApi.isAuthenticated(player)) return;
-        player.teleport(getLoginLocation());
+        player.setNoDamageTicks(5);
     }
     public Location getSpawnLocation(World world) {
         int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius")) <= 10 ? 200 : Integer.parseInt(world.getGameRuleValue("spawnRadius"));
@@ -36,11 +34,8 @@ public class Helpers {
         return new Location(world, x, y, z);
     }
     public void teleportAway(Player player) {
-        Location teleportDestination = getLoginLocation();
+        Location teleportDestination = getSpawnLocation(player.getWorld());
         player.teleport(teleportDestination);
-    }
-    public Location getLoginLocation(){
-        return new Location(Bukkit.getServer().getWorld(config.getString("world-name")), config.getDouble("spawn-x"), config.getDouble("spawn-y"), config.getDouble("spawn-z"));
     }
     public void teleportBack(Player player) {
         String playerName = player.getName();
@@ -56,6 +51,19 @@ public class Helpers {
 
 
     public void saveData(File dataFolder){
+        Iterator<Map.Entry<String, Location>> iterator = playerLocations.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, Location> entry = iterator.next();
+            String playerName = entry.getKey();
+            Location storedLocation = entry.getValue();
+
+            Player player = Bukkit.getPlayer(playerName);
+            if (player != null && storedLocation != null) {
+                player.teleport(storedLocation);
+                iterator.remove();
+            }
+        }
         String jdbcUrl = "jdbc:sqlite:"+dataFolder+File.separator+"location.db";
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
