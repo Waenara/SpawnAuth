@@ -20,5 +20,11 @@ public class SpawnAuth extends JavaPlugin implements Listener {
 
         events = new Events();
         getServer().getPluginManager().registerEvents(events, this);
+        events.helpers.loadData(getDataFolder());
+    }
+
+    @Override
+    public void onDisable(){
+        events.helpers.saveData(getDataFolder());
     }
 }

@@ -14,21 +14,17 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
-
 import static org.bukkit.Bukkit.*;
 
 public class Events implements Listener {
-    private final Helpers helpers = new Helpers();
-    private final HashMap<UUID, Location> playerLocations = helpers.getPlayerLocations();
+    public final Helpers helpers = new Helpers();
+    public final HashMap<String, Location> playerLocations = helpers.getPlayerLocations();
     public AuthMeApi authMeApi = AuthMeApi.getInstance();
 
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
         if (!authMeApi.isAuthenticated(event.getPlayer())){
-            UUID playerUniqueId = event.getPlayer().getUniqueId();
-            playerLocations.remove(playerUniqueId);
+            playerLocations.remove(event.getPlayer().getName());
             getServer().getScheduler().runTaskLater(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportAway(event.getPlayer()), 2L);
         }
     }
@@ -38,10 +34,10 @@ public class Events implements Listener {
         Player player = event.getPlayer();
         if (!(player.getWorld() == getWorld("world_the_end"))) {
             if (!helpers.isPlayerInRadius(player, helpers.getLoginLocation(), 10)) {
-                helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+                helpers.cacheOriginalLocation(player.getName(), player.getLocation());
             }
         }else{
-            helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+            helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         }
         helpers.teleportAway(player);
         getScheduler().runTaskTimer(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportPlayer(player), 0L, 4L);
@@ -61,7 +57,7 @@ public class Events implements Listener {
         World world = event.getPlayer().getWorld();
         Player player = event.getPlayer();
         player.setNoDamageTicks(60);
-        if (!playerLocations.containsKey(player.getUniqueId())) {
+        if (!playerLocations.containsKey(player.getName())) {
             if (player.getBedSpawnLocation() != null) {
                 player.teleport(player.getBedSpawnLocation());
                 return;
@@ -75,14 +71,14 @@ public class Events implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     private void OnLogout(LogoutEvent event) {
         Player player = event.getPlayer();
-        helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         helpers.teleportAway(player);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     private void onUnregisterByPlayer(UnregisterByPlayerEvent event) {
         Player player = event.getPlayer();
-        helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         helpers.teleportAway(player);
     }
 
@@ -90,7 +86,7 @@ public class Events implements Listener {
     private void onUnregisterByAdmin(UnregisterByPlayerEvent event) {
         Player player = event.getPlayer();
         if (player != null && player.isOnline()) {
-            helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+            helpers.cacheOriginalLocation(player.getName(), player.getLocation());
             helpers.teleportAway(player);
         }
     }
