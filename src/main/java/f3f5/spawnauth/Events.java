@@ -13,20 +13,21 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
 import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
-import static org.bukkit.Bukkit.getServer;
+import static org.bukkit.Bukkit.*;
 
 public class Events implements Listener {
-    private final Helpers helpers = new Helpers();
-    private final HashMap<UUID, Location> playerLocations = helpers.getPlayerLocations();
+    public final Helpers helpers = new Helpers();
+    public final HashMap<String, Location> playerLocations = helpers.getPlayerLocations();
     public AuthMeApi authMeApi = AuthMeApi.getInstance();
+
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
         if (!authMeApi.isAuthenticated(event.getPlayer())){
-            UUID playerUniqueId = event.getPlayer().getUniqueId();
-            playerLocations.remove(playerUniqueId);
+            playerLocations.remove(event.getPlayer().getName());
             getServer().getScheduler().runTaskLater(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportAway(event.getPlayer()), 2L);
         }
     }
@@ -34,10 +35,17 @@ public class Events implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!helpers.isPlayerInRadius(player,helpers.getSpawnLocation(),10)){
-            helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        if (!(player.getWorld() == getWorld("world_the_end"))) {
+            if (!helpers.isPlayerInRadius(player, helpers.getSpawnLocation(player.getWorld()), 2)) {
+                helpers.cacheOriginalLocation(player.getName(), player.getLocation());
+            }
+        }else{
+            helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         }
         helpers.teleportAway(player);
+        PotionEffect invisibilityEffect = new PotionEffect(PotionEffectType.INVISIBILITY, 1200, 1);
+        player.addPotionEffect(invisibilityEffect);
+        getScheduler().runTaskTimer(SpawnAuth.getPlugin(SpawnAuth.class), () -> helpers.teleportPlayer(player), 0L, 4L);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -47,45 +55,39 @@ public class Events implements Listener {
             player.leaveVehicle();
             helpers.teleportBack(player);
         }
-    }
-
-    private int getRandomCoordinate(int Limit) {
-        Random random = new Random();
-        return random.nextInt(Limit);
-    }
-
-    @EventHandler(priority = EventPriority.NORMAL)
-    private void onLogin(LoginEvent event) {
-        World world = event.getPlayer().getWorld();
-        int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius"));
-        Player player = event.getPlayer();
-        player.setNoDamageTicks(60);
-        if (!playerLocations.containsKey(player.getUniqueId())) {
-            if (player.getBedSpawnLocation() != null) {
-                player.teleport(player.getBedSpawnLocation());
-                return;
-            }
-            int x = getRandomCoordinate(spawnRadius);
-            int z = getRandomCoordinate(spawnRadius);
-            int y = world.getHighestBlockYAt(x, z);
-
-            player.teleport(new Location(world, x, y, z));
-        } else {
+        if (!authMeApi.isAuthenticated(player)){
             helpers.teleportBack(player);
         }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
+    private void onLogin(LoginEvent event) {
+        World world = event.getPlayer().getWorld();
+        Player player = event.getPlayer();
+        player.setNoDamageTicks(60);
+        if (!playerLocations.containsKey(player.getName())) {
+            if (player.getBedSpawnLocation() != null) {
+                player.teleport(player.getBedSpawnLocation());
+                return;
+            }
+            player.teleport(helpers.getSpawnLocation(world));
+        } else {
+            helpers.teleportBack(player);
+        }
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
     private void OnLogout(LogoutEvent event) {
         Player player = event.getPlayer();
-        helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         helpers.teleportAway(player);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     private void onUnregisterByPlayer(UnregisterByPlayerEvent event) {
         Player player = event.getPlayer();
-        helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+        helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         helpers.teleportAway(player);
     }
 
@@ -93,7 +95,7 @@ public class Events implements Listener {
     private void onUnregisterByAdmin(UnregisterByPlayerEvent event) {
         Player player = event.getPlayer();
         if (player != null && player.isOnline()) {
-            helpers.cacheOriginalLocation(player.getUniqueId(), player.getLocation());
+            helpers.cacheOriginalLocation(player.getName(), player.getLocation());
             helpers.teleportAway(player);
         }
     }
