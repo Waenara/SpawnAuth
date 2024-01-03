@@ -1,12 +1,17 @@
 package f3f5.spawnauth;
 
 import fr.xephi.authme.api.v3.AuthMeApi;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.sql.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.Map;
+import java.util.Iterator;
+import java.util.Set;
 
 
 public class Helpers {
@@ -34,7 +39,7 @@ public class Helpers {
         return new Location(world, x, y, z);
     }
     public void teleportAway(Player player) {
-        Location teleportDestination = getSpawnLocation(player.getWorld());
+        Location teleportDestination = getSpawnLocation(Bukkit.getWorld("world"));
         player.teleport(teleportDestination);
     }
     public void teleportBack(Player player) {
@@ -50,7 +55,7 @@ public class Helpers {
     }
 
 
-    public void saveData(File dataFolder){
+    public void saveData(){
         Iterator<Map.Entry<String, Location>> iterator = playerLocations.entrySet().iterator();
 
         while (iterator.hasNext()) {
@@ -64,7 +69,7 @@ public class Helpers {
                 iterator.remove();
             }
         }
-        String jdbcUrl = "jdbc:sqlite:"+dataFolder+File.separator+"location.db";
+        String jdbcUrl = "jdbc:sqlite:location.db";
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS \"location\" (\n" +
@@ -94,8 +99,8 @@ public class Helpers {
         } catch (SQLException ignored) {}
     }
 
-    public void loadData(File dataFolder) {
-        String url = "jdbc:sqlite:" + dataFolder + File.separator +"location.db";
+    public void loadData() {
+        String url = "jdbc:sqlite:location.db";
         String sqlQuery = "SELECT * FROM location";
         try (Connection connection = DriverManager.getConnection(url);
              PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
