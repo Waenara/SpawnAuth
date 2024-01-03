@@ -55,6 +55,9 @@ public class Events implements Listener {
             player.leaveVehicle();
             helpers.teleportBack(player);
         }
+        if (!authMeApi.isAuthenticated(player)){
+            helpers.teleportBack(player);
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
