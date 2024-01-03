@@ -3,7 +3,6 @@ package f3f5.spawnauth;
 import fr.xephi.authme.api.v3.AuthMeApi;
 import fr.xephi.authme.events.LoginEvent;
 import fr.xephi.authme.events.LogoutEvent;
-import fr.xephi.authme.events.UnregisterByPlayerEvent;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -82,21 +81,5 @@ public class Events implements Listener {
         Player player = event.getPlayer();
         helpers.cacheOriginalLocation(player.getName(), player.getLocation());
         helpers.teleportAway(player);
-    }
-
-    @EventHandler(priority = EventPriority.NORMAL)
-    private void onUnregisterByPlayer(UnregisterByPlayerEvent event) {
-        Player player = event.getPlayer();
-        helpers.cacheOriginalLocation(player.getName(), player.getLocation());
-        helpers.teleportAway(player);
-    }
-
-    @EventHandler(priority = EventPriority.NORMAL)
-    private void onUnregisterByAdmin(UnregisterByPlayerEvent event) {
-        Player player = event.getPlayer();
-        if (player != null && player.isOnline()) {
-            helpers.cacheOriginalLocation(player.getName(), player.getLocation());
-            helpers.teleportAway(player);
-        }
     }
 }
