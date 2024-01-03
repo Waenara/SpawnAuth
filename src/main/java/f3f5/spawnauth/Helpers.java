@@ -56,7 +56,7 @@ public class Helpers {
 
 
     public void saveData(File dataFolder){
-        String jdbcUrl = "jdbc:sqlite:"+dataFolder+"\\location.db";
+        String jdbcUrl = "jdbc:sqlite:"+dataFolder+File.separator+"location.db";
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS \"location\" (\n" +
@@ -87,7 +87,7 @@ public class Helpers {
     }
 
     public void loadData(File dataFolder) {
-        String url = "jdbc:sqlite:" + dataFolder + "\\location.db";
+        String url = "jdbc:sqlite:" + dataFolder + File.separator +"location.db";
         String sqlQuery = "SELECT * FROM location";
         try (Connection connection = DriverManager.getConnection(url);
              PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
